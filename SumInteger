@@ -1,0 +1,106 @@
+###################### MAIN PROGRAM FUNCTION ################################
+# Assignment #6: Sum Of Integers 1 - N Programmer: Cat Trujillo 
+# Due Date: 4/19/20			Course: CSC 225 040
+# Last Modified: 4/15/2020
+#####################################################################
+# Functional Description:
+# This main program is used to test the function Sum(N)
+# It will repeat the Sum(N) function 5 times, and print the result each time.
+# list of arguments for N will be found data segment.
+#####################################################################
+# Pseudocode:
+#   a0 = base address of array N
+#   a1 = 5			# Initialize loop counter
+#  
+# 	While (a1 > 0) do {
+#		a1 = a1 - 1	# Decrement Loop Counter
+#		cout << Sum(N)		
+#   End Program 
+######################################################################
+# Register Usage:
+# $a0 = Used to pass the address of Array N to function
+# $a1 = Loop Counter
+# $t0 = Temporary address holder for 4($a0)
+######################################################################
+			.data			# Data declaration section
+N:			.word 9, 10, 32666, 32777, 654321
+newline:	.asciiz	"\n"
+
+			.text			# Executable code follows
+main:
+	li		$a1, 5			# Initialize loop counter
+	move	$a2, $zero		# Initialize index offset counter 
+	la		$a0, N 
+loop:
+	blez	$a1, End        # Exit program when counter reaches 0
+	jal 	Sum				# Call Sum Function
+	addi 	$t0, $a0, 4		# Increment array pointer and store in $t0 
+							# to free up $a0 for print calls	
+	move	$a0, $v0		# Value of sum returned in $v0
+	li		$v0, 1			# System call code for print integer
+	syscall					# print the reurn value of Sum
+	
+	li		$v0, 4			# System call code for print string
+	la 		$a0, newline 	# load address of newline
+	syscall					# Print newline
+	
+	la		$a0, 0($t0)		# Restore Array pointer to $a0  /// alt code move $a0, $t0
+	addi	$a1, $a1, -1	# Decrement Loop Counter
+	b 		loop			# Branch to loop
+	
+End:
+	li		$v0, 10			# Terminate program run and
+	syscall					# return control to system
+	
+################### END OF MAIN PROGRAM ###############################
+
+################## SUM OF INTEGERS FUNCTION #######################################
+# Function Name: Sum(N)         
+# Last Modified: 4/15/2020
+###############################################################################
+# Function Description:
+# This function will return the sum of integer values 1 - N. Address of N will be passed in
+# $a0. The sum of values 1 - N will be calculated using the formula SUM = (N * (N + 1)) / 2  
+# and the value will be returned in $v0.  	
+###############################################################################
+# Register Usage in Function:
+#	a0 = address pointer into array
+#	t1 = value of N for use in Sum formula
+#   t2 = N + 1 for use in Sum formula
+#	t3 = register to hold upper 32 bits multiplication product
+#	t4 = register to hold lower 32 bits of multiplication product
+#	v0 = return value of Sum function
+#################################################################################
+# Pseudocode:
+#	$t1 = Mem(a0)	# Get value from array
+#	$t2 = $t1 + 1   # Value in parenthesis in SUM formula (n + 1)
+#	$t1 * $t2 =		# Multiply (n * (n + 1))
+#		$t3: Higher Bits
+#		$t4: Lower Bits
+#	if ($t3 == 0) {
+#		$v0 = $t4 / 2 
+#		Return
+#		}
+#	else # Code for translating 64-bit integers
+#################################################################################
+
+Sum:
+	lw		$t1, 0($a0)		# Get value from array
+	addi	$t2, $t1, 1		# Get value in parenthesis
+	
+	mult	$t2, $t1		# Multiply
+	mfhi	$t3				# Store higher bits
+	mflo	$t4				# Store lower bits
+	
+	sra 	$v0, $t4, 1		# Divide by two
+	
+	jr		$ra				#return
+###################### END SUM FUNCTION #######################################
+
+
+
+		
+	
+	
+
+	
